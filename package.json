@@ -1,0 +1,64 @@
+{
+    "name": "Leaflet.DataTileLayer",
+    "version": "0.1.0",
+    "description": "Decode data tile layer",
+    "main": "dist/index.js",
+    "scripts": {
+        "watch": "rollup -c --watch",
+        "build": "rollup -c"
+    },
+    "author": "",
+    "license": "ISC",
+    "peerDependencies": {
+        "leaflet": "^1.1.0"
+    },
+    "eslintConfig": {
+        "root": true,
+        "globals": {
+            "L": true
+        },
+        "env": {
+            "commonjs": true,
+            "amd": true,
+            "node": false
+        },
+        "extends": "mourner",
+        "parserOptions": {
+            "ecmaVersion": 6,
+            "sourceType": "module"
+        },
+        "rules": {
+            "linebreak-style": [
+                0,
+                "unix"
+            ],
+            "no-mixed-spaces-and-tabs": [
+                2,
+                "smart-tabs"
+            ],
+            "indent": [
+                2,
+                "tab",
+                {
+                    "VariableDeclarator": 0,
+                    "flatTernaryExpressions": true
+                }
+            ],
+            "curly": 2,
+            "spaced-comment": 2,
+            "strict": 0,
+            "wrap-iife": 0,
+            "key-spacing": 0,
+            "consistent-return": 0
+        }
+    },
+    "devDependencies": {
+        "babel-core": "^6.26.3",
+        "babel-plugin-external-helpers": "^6.22.0",
+        "babel-preset-env": "^1.7.0",
+        "d3": "^3.5.17",
+        "eslint-config-mourner": "^2.0.3",
+        "rollup": "^0.64.1",
+        "rollup-plugin-babel": "^3.0.7"
+    }
+}
