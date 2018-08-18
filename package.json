@@ -1,5 +1,5 @@
 {
-    "name": "Leaflet.DataTileLayer",
+    "name": "leaflet-datatilelayer",
     "version": "0.1.0",
     "description": "Decode data tile layer",
     "main": "dist/index.js",
