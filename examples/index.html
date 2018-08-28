@@ -84,19 +84,23 @@
             label: "ESRI Topo"
         }).addTo(map);
 
-        const url = "http://localhost:8001/services/test";
+        const url = "http://localhost:8001/services/encoding2";
 
         d3.json(url).then(function (tileJSON) {
             console.log(tileJSON);
 
             const layer = L.dataTileLayer(tileJSON.tiles[0], {
                 encoding: JSON.parse(tileJSON.encoding),
-                opacity: 0.5
+                opacity: 0.5,
+                imageSize: 128 // tiles are created at 1/2 resolution to reduce size
             }).addTo(map);
 
             function getValue() {
                 var values = layer.decodePoint(map.getCenter());
                 console.log("values", values);
+                if (values !== null) {
+                    console.log("Keys present: ", Object.keys(values).filter(k => values[k] !== null))
+                }
                 // displayValues(values);
             }
 

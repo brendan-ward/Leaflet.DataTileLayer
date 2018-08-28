@@ -7,7 +7,8 @@ import { exponentialDecoder, rgbaDecoder } from "./decoder";
 export const DataTileLayer = L.TileLayer.extend({
     options: {
         crossOrigin: true,
-        encoding: null
+        encoding: null,
+        imageSize: 256 // actual size of the image in pixels; tileSize must be 256 or Leaflet breaks
     },
     initialize: function(url, options) {
         L.TileLayer.prototype.initialize.call(this, url, options);
@@ -37,25 +38,31 @@ export const DataTileLayer = L.TileLayer.extend({
     },
 
     /**
-     * Get value for a given latlng.
+     * Get value for a given latlng, scaling to match the image size if needed
      * If value is NODATA, null will be returned.
      * Otherwise this will return an object with a key for each layer and the decoded value
      */
     decodePoint: function(latlng) {
-        // derived from: https://github.com/frogcat/leaflet-tilelayer-colorpicker
-        var size = this.getTileSize();
-        var point = this._map.project(latlng, this._tileZoom).floor();
-        var coords = point.unscaleBy(size).floor();
-        var offset = point.subtract(coords.scaleBy(size));
+        const imageSize = this.options.imageSize || 256;
+        const tileFootprint = this.getTileSize(); // tile footprint should always be 256x256
+        const point = this._map.project(latlng, this._tileZoom).floor();
+        const coords = point.unscaleBy(tileFootprint).floor();
+        let offset = point.subtract(coords.scaleBy(tileFootprint)); // offset within a 256 pixel footprint
+        if (this.options.imageSize && this.options.imageSize !== 256) {
+            // scale to the actual image size
+            const scale = this.options.imageSize / 256;
+            offset = offset.scaleBy({ x: scale, y: scale }).floor();
+        }
+
         coords.z = this._tileZoom;
-        var tile = this._tiles[this._tileCoordsToKey(coords)];
+        const tile = this._tiles[this._tileCoordsToKey(coords)];
         if (!tile || !tile.loaded) return null;
         try {
             var canvas = document.createElement("canvas");
             canvas.width = 1;
             canvas.height = 1;
-            var context = canvas.getContext("2d");
-            context.drawImage(tile.el, -offset.x, -offset.y, size.x, size.y);
+            const context = canvas.getContext("2d");
+            context.drawImage(tile.el, -offset.x, -offset.y, imageSize, imageSize);
             const rgba = context.getImageData(0, 0, 1, 1).data;
             const value = this.rgbaDecoder(rgba);
 

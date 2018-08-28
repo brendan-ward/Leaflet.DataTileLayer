@@ -145,7 +145,8 @@
   var DataTileLayer = L.TileLayer.extend({
       options: {
           crossOrigin: true,
-          encoding: null
+          encoding: null,
+          imageSize: 256 // actual size of the image in pixels; tileSize must be 256 or Leaflet breaks
       },
       initialize: function initialize(url, options) {
           L.TileLayer.prototype.initialize.call(this, url, options);
@@ -180,16 +181,22 @@
       },
 
       /**
-       * Get value for a given latlng.
+       * Get value for a given latlng, scaling to match the image size if needed
        * If value is NODATA, null will be returned.
        * Otherwise this will return an object with a key for each layer and the decoded value
        */
       decodePoint: function decodePoint(latlng) {
-          // derived from: https://github.com/frogcat/leaflet-tilelayer-colorpicker
-          var size = this.getTileSize();
+          var imageSize = this.options.imageSize || 256;
+          var tileFootprint = this.getTileSize(); // tile footprint should always be 256x256
           var point = this._map.project(latlng, this._tileZoom).floor();
-          var coords = point.unscaleBy(size).floor();
-          var offset = point.subtract(coords.scaleBy(size));
+          var coords = point.unscaleBy(tileFootprint).floor();
+          var offset = point.subtract(coords.scaleBy(tileFootprint)); // offset within a 256 pixel footprint
+          if (this.options.imageSize && this.options.imageSize !== 256) {
+              // scale to the actual image size
+              var scale = this.options.imageSize / 256;
+              offset = offset.scaleBy({ x: scale, y: scale }).floor();
+          }
+
           coords.z = this._tileZoom;
           var tile = this._tiles[this._tileCoordsToKey(coords)];
           if (!tile || !tile.loaded) return null;
@@ -198,7 +205,7 @@
               canvas.width = 1;
               canvas.height = 1;
               var context = canvas.getContext("2d");
-              context.drawImage(tile.el, -offset.x, -offset.y, size.x, size.y);
+              context.drawImage(tile.el, -offset.x, -offset.y, imageSize, imageSize);
               var rgba = context.getImageData(0, 0, 1, 1).data;
               var value = this.rgbaDecoder(rgba);
 
